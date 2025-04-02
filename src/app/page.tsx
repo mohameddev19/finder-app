@@ -1,95 +1,73 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+
+import { Container, Title, Text, Button, Group, SimpleGrid, Card, rem, Stack } from '@mantine/core';
+import { AppLayout } from '@/components/AppShell';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const router = useRouter();
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+  const features = [
+    {
+      title: 'Search for Missing Persons',
+      description: 'Search through our database to find information about missing persons.',
+      action: () => router.push('/search'),
+    },
+    {
+      title: 'Report a Missing Person',
+      description: 'Register a missing person and provide details to help with the search.',
+      action: () => router.push('/add-missing'),
+    },
+    {
+      title: 'Get Notified',
+      description: 'Set up notifications to be alerted when there is new information about a missing person.',
+      action: () => router.push('/notifications'),
+    },
+    {
+      title: 'View Statistics',
+      description: 'Access statistics about missing and found persons.',
+      action: () => router.push('/statistics'),
+    },
+  ];
+
+  return (
+    <AppLayout>
+      <Container size="lg">
+        <Stack gap="xl" py={rem(50)}>
+          <div style={{ textAlign: 'center', marginBottom: rem(40) }}>
+            <Title order={1} size="h1" style={{ marginBottom: rem(16) }}>
+              Help Find Missing Persons
+            </Title>
+            <Text size="lg" c="dimmed" maw={600} mx="auto">
+              A community platform to help reunite families with their missing loved ones who have been abducted and released.
+            </Text>
+            <Group justify="center" mt="xl">
+              <Button size="lg" onClick={() => router.push('/search')}>
+                Search Missing Persons
+              </Button>
+              <Button size="lg" variant="outline" onClick={() => router.push('/add-missing')}>
+                Report Missing Person
+              </Button>
+            </Group>
+          </div>
+
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="xl">
+            {features.map((feature, index) => (
+              <Card key={index} shadow="md" padding="lg" radius="md" withBorder>
+                <Title order={3} fw={700} mb="xs">
+                  {feature.title}
+                </Title>
+                <Text size="sm" c="dimmed" mb="md">
+                  {feature.description}
+                </Text>
+                <Button variant="light" onClick={feature.action}>
+                  Learn More
+                </Button>
+              </Card>
+            ))}
+          </SimpleGrid>
+        </Stack>
+      </Container>
+    </AppLayout>
   );
 }
