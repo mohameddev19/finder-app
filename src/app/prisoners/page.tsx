@@ -16,7 +16,6 @@ import {
   Loader
 } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
-import { AppLayout } from '@/components/AppShell';
 import { PrisonerCard } from '@/components/PrisonerCard';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
@@ -91,97 +90,93 @@ export default function PrisonersPage() {
 
   if (loading && prisoners.length === 0) {
     return (
-      <AppLayout>
-        <Container>
-          <Center style={{ height: 'calc(100vh - 200px)' }}>
-            <Loader size="xl" />
-          </Center>
-        </Container>
-      </AppLayout>
+      <Container>
+        <Center style={{ height: 'calc(100vh - 200px)' }}>
+          <Loader size="xl" />
+        </Center>
+      </Container>
     );
   }
 
   return (
-    <AppLayout>
-      <Container size="lg">
-        <Stack gap="lg">
-          <Title order={1}>Prisoners Database</Title>
+    <Container size="lg">
+      <Stack gap="lg">
+        <Title order={1}>Prisoners Database</Title>
           
-          <form onSubmit={handleSearch}>
-            <Grid align="flex-end">
-              <Grid.Col span={{ base: 12, md: 4 }}>
-                <TextInput
-                  label="Search by Name"
-                  placeholder="Enter prisoner name"
-                  value={nameFilter}
-                  onChange={(e) => setNameFilter(e.target.value)}
-                />
-              </Grid.Col>
-              
-              <Grid.Col span={{ base: 12, md: 4 }}>
-                <Select
-                  label="Status"
-                  placeholder="Select status"
-                  data={[
-                    { value: 'under_search', label: 'Under Search' },
-                    { value: 'found', label: 'Found' }
-                  ]}
-                  value={statusFilter}
-                  onChange={setStatusFilter}
-                  clearable
-                />
-              </Grid.Col>
-              
-              <Grid.Col span={{ base: 12, md: 4 }}>
-                <TextInput
-                  label="Location"
-                  placeholder="Search by location"
-                  value={locationFilter}
-                  onChange={(e) => setLocationFilter(e.target.value)}
-                />
-              </Grid.Col>
-              
-              <Grid.Col span={{ base: 12, md: 12 }}>
-                <Group justify="flex-end">
-                  <Button 
-                    variant="light" 
-                    onClick={() => {
-                      setNameFilter('');
-                      setStatusFilter(null);
-                      setLocationFilter('');
-                    }}
-                  >
-                    Clear
-                  </Button>
-                  <Button type="submit" leftSection={<IconSearch size={16} />}>
-                    Search
-                  </Button>
-                </Group>
-              </Grid.Col>
-            </Grid>
-          </form>
+        <form onSubmit={handleSearch}>
+          <Grid align="flex-end">
+            <Grid.Col span={{ base: 12, md: 4 }}>
+              <TextInput
+                label="Search by Name"
+                placeholder="Enter prisoner name"
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+              />
+            </Grid.Col>
+            
+            <Grid.Col span={{ base: 12, md: 4 }}>
+              <Select
+                label="Status"
+                placeholder="Select status"
+                data={[
+                  { value: 'under_search', label: 'Under Search' },
+                  { value: 'found', label: 'Found' }
+                ]}
+                value={statusFilter}
+                onChange={setStatusFilter}
+                clearable
+              />
+            </Grid.Col>
+            
+            <Grid.Col span={{ base: 12, md: 4 }}>
+              <TextInput
+                label="Location"
+                placeholder="Search by location"
+                value={locationFilter}
+                onChange={(e) => setLocationFilter(e.target.value)}
+              />
+            </Grid.Col>
+            
+            <Grid.Col span={{ base: 12, md: 12 }}>
+              <Group justify="flex-end">
+                <Button 
+                  variant="light" 
+                  onClick={() => {
+                    setNameFilter('');
+                    setStatusFilter(null);
+                    setLocationFilter('');
+                  }}
+                >
+                  Clear
+                </Button>
+                <Button type="submit" leftSection={<IconSearch size={16} />}>
+                  Search
+                </Button>
+              </Group>
+            </Grid.Col>
+          </Grid>
+        </form>
 
-          {error && (
-            <Text c="red" ta="center">{error}</Text>
-          )}
-          
-          {prisoners.length === 0 && !loading ? (
-            <Text size="lg" ta="center" mt="xl">
-              No prisoners found matching your criteria
-            </Text>
-          ) : (
-            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
-              {prisoners.map(prisoner => (
-                <PrisonerCard
-                  key={prisoner.id}
-                  {...prisoner}
-                  onDetailsClick={handleViewDetails}
-                />
-              ))}
-            </SimpleGrid>
-          )}
-        </Stack>
-      </Container>
-    </AppLayout>
+        {error && (
+          <Text c="red" ta="center">{error}</Text>
+        )}
+        
+        {prisoners.length === 0 && !loading ? (
+          <Text size="lg" ta="center" mt="xl">
+            No prisoners found matching your criteria
+          </Text>
+        ) : (
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+            {prisoners.map(prisoner => (
+              <PrisonerCard
+                key={prisoner.id}
+                {...prisoner}
+                onDetailsClick={handleViewDetails}
+              />
+            ))}
+          </SimpleGrid>
+        )}
+      </Stack>
+    </Container>
   );
 } 

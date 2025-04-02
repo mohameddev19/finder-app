@@ -4,6 +4,7 @@ import { MantineProvider, ColorSchemeScript } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import React from 'react';
 import { AuthProvider } from '@/hooks/useAuth';
+import { AppLayout } from '@/components/AppShell';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +13,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <MantineProvider>
         <Notifications position="top-right" />
         <AuthProvider>
-          {children}
+          <AppLayout>
+            {children}
+          </AppLayout>
         </AuthProvider>
       </MantineProvider>
     </>

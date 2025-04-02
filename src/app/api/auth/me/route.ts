@@ -1,51 +1,70 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { verifyToken, parseAuthHeader } from '@/lib/auth';
-import { db } from '@/db/connect';
+import { NextResponse, type NextRequest } from 'next/server';
+import * as jwt from 'jsonwebtoken';
+import { JWTPayload } from '@/lib/auth'; // Import the payload type
+import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
-export async function GET(request: Request) {
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
+export async function GET(request: NextRequest) {
   try {
-    // Get token from cookie or Authorization header
-    const cookieStore = cookies();
-    const tokenCookie = cookieStore.get('finder_token');
-    
-    // Check for Authorization header if cookie not present
-    const authHeader = request.headers.get('Authorization');
-    const headerToken = parseAuthHeader(authHeader || '');
-    
-    const token = tokenCookie?.value || headerToken;
-    
+    // Read token from the request cookies
+    const tokenCookie = request.cookies.get('finder_token');
+    const token = tokenCookie?.value;
+
     if (!token) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      return NextResponse.json({ error: 'Authentication token cookie missing' }, { status: 401 });
     }
-    
-    // Verify token
-    const payload = verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+
+    let decodedPayload: JWTPayload;
+    try {
+      // Use jsonwebtoken.verify here as API routes run in Node.js env
+      decodedPayload = jwt.verify(token, JWT_SECRET) as JWTPayload;
+    } catch (error) {
+      console.error('API /me JWT Verification Error:', error);
+      // If verification fails, consider instructing the browser to clear the invalid cookie
+      const response = NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+      response.cookies.set('finder_token', '', { maxAge: -1, path: '/' }); // Clear the cookie
+      return response;
     }
-    
-    // Get user from database
+
+    // Fetch the latest user data from DB
     const user = await db.query.users.findFirst({
-      where: eq(users.id, payload.userId),
+        where: eq(users.id, decodedPayload.userId),
+        columns: { // Exclude sensitive data like password
+            id: true,
+            email: true,
+            name: true,
+            userType: true,
+            isVerified: true,
+            organization: true,
+            position: true,
+            phone: true, // Include if needed by frontend
+            createdAt: true, // Include if needed
+        }
     });
-    
+
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      // User associated with token no longer exists, clear cookie
+      const response = NextResponse.json({ error: 'User not found' }, { status: 404 });
+      response.cookies.set('finder_token', '', { maxAge: -1, path: '/' }); // Clear the cookie
+      return response;
     }
     
-    // Return user data (excluding password)
-    const { password: _, ...userWithoutPassword } = user;
-    
-    return NextResponse.json({ 
-      user: userWithoutPassword,
-      isAuthenticated: true
-    });
-    
+    // Important: Check if the token matches the one stored in the DB (if applicable)
+    // This helps invalidate sessions if a user logs out elsewhere or token is compromised
+    // const storedToken = await db.query.users.findFirst({ columns: { token: true }, where: eq(users.id, user.id) });
+    // if (storedToken?.token !== token) {
+    //    return NextResponse.json({ error: 'Token mismatch or session invalidated' }, { status: 401 });
+    // }
+
+
+    // Return the user data (from DB preferably, or decoded payload as fallback)
+    return NextResponse.json({ user: user });
+
   } catch (error) {
-    console.error('Authentication check error:', error);
-    return NextResponse.json({ error: 'Authentication check failed' }, { status: 500 });
+    console.error('API /me Error:', error);
+    return NextResponse.json({ error: 'An internal server error occurred' }, { status: 500 });
   }
 } 

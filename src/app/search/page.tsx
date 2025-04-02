@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AppLayout } from '@/components/AppShell';
-import { Container, Title, TextInput, Button, Group, Select, Stack, Text, Card, Badge, Grid, Loader, Center, Checkbox } from '@mantine/core';
+import { Container, Title, TextInput, Button, Group, Stack, Text, Card, Badge, Grid, Loader, Center, Checkbox } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 
@@ -29,92 +28,64 @@ export default function SearchPage() {
   const form = useForm({
     initialValues: {
       name: '',
-      location: '',
-      gender: '',
-      status: '',
+    },
+    validate: {
+      name: (value) => (value.length < 2 ? 'Name must be at least 2 characters' : null),
     },
   });
 
-  // Mock data
-  const mockPrisoners: Prisoner[] = [
-    {
-      id: 1,
-      name: 'John Doe',
-      age: 35,
-      gender: 'male',
-      reasonForCapture: 'Political activism',
-      locationOfDisappearance: 'Damascus',
-      dateOfDisappearance: '2022-03-15',
-      status: 'under_search',
-    },
-    {
-      id: 2,
-      name: 'Sarah Ahmed',
-      age: 42,
-      gender: 'female',
-      reasonForCapture: 'Suspected journalist',
-      locationOfDisappearance: 'Aleppo',
-      dateOfDisappearance: '2021-11-20',
-      status: 'found',
-      releasedDate: '2023-05-10',
-      releasedLocation: 'Northern border',
-    },
-    {
-      id: 3,
-      name: 'Ahmed Mahmoud',
-      age: 28,
-      gender: 'male',
-      locationOfDisappearance: 'Homs',
-      dateOfDisappearance: '2023-01-05',
-      status: 'under_search',
+  const handleSubscribe = async (prisonerId: number) => {
+    try {
+      const response = await fetch(`/api/subscriptions/${prisonerId}`, {
+        method: subscribed[prisonerId] ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update subscription');
+      }
+
+      setSubscribed(prev => ({
+        ...prev,
+        [prisonerId]: !prev[prisonerId]
+      }));
+
+      notifications.show({
+        title: subscribed[prisonerId] ? 'Unsubscribed' : 'Subscribed',
+        message: subscribed[prisonerId] 
+          ? 'You will no longer receive notifications for this person' 
+          : 'You will receive notifications if there are updates about this person',
+        color: subscribed[prisonerId] ? 'yellow' : 'green',
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to update subscription',
+        color: 'red',
+      });
     }
-  ];
-
-  const handleSubscribe = (prisonerId: number) => {
-    setSubscribed(prev => ({
-      ...prev,
-      [prisonerId]: !prev[prisonerId]
-    }));
-
-    notifications.show({
-      title: subscribed[prisonerId] ? 'Unsubscribed' : 'Subscribed',
-      message: subscribed[prisonerId] 
-        ? 'You will no longer receive notifications for this person' 
-        : 'You will receive notifications if there are updates about this person',
-      color: subscribed[prisonerId] ? 'yellow' : 'green',
-    });
   };
 
   const handleSearch = async (values: typeof form.values) => {
+    if (values.name.trim().length < 2) return;
+    
     setLoading(true);
     try {
-      // In a real application, this would be an API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch(`/api/search?name=${encodeURIComponent(values.name.trim())}`);
       
-      // Filter mock data based on search criteria
-      const filteredResults = mockPrisoners.filter(prisoner => {
-        if (values.name && !prisoner.name.toLowerCase().includes(values.name.toLowerCase())) {
-          return false;
-        }
-        if (values.location && prisoner.locationOfDisappearance && 
-            !prisoner.locationOfDisappearance.toLowerCase().includes(values.location.toLowerCase())) {
-          return false;
-        }
-        if (values.gender && prisoner.gender !== values.gender) {
-          return false;
-        }
-        if (values.status && prisoner.status !== values.status) {
-          return false;
-        }
-        return true;
-      });
+      if (!response.ok) {
+        throw new Error('Search failed');
+      }
+
+      const data = await response.json();
+      setSearchResults(data);
       
-      setSearchResults(filteredResults);
-      
-      if (filteredResults.length === 0) {
+      if (data.length === 0) {
         notifications.show({
           title: 'No results found',
-          message: 'Try adjusting your search criteria',
+          message: 'Try a different name',
           color: 'yellow',
         });
       }
@@ -131,116 +102,76 @@ export default function SearchPage() {
   };
 
   return (
-    <AppLayout>
-      <Container size="lg">
-        <Title order={1} ta="center" mt="xl" mb="md">
-          Search for Missing Persons
-        </Title>
-        <Text c="dimmed" ta="center" mb="xl">
-          Search for missing relatives or activate notifications for specific cases.
-        </Text>
+    <Container size="lg">
+      <Title order={1} ta="center" mt="xl" mb="md">
+        Search for Missing Persons
+      </Title>
+      <Text c="dimmed" ta="center" mb="xl">
+        Search for missing relatives or activate notifications for specific cases.
+      </Text>
 
-        <Card shadow="md" radius="md" p="xl" withBorder mb="xl">
-          <form onSubmit={form.onSubmit(handleSearch)}>
-            <Grid>
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <TextInput
-                  label="Name"
-                  placeholder="Enter full or partial name"
-                  {...form.getInputProps('name')}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <TextInput
-                  label="Location"
-                  placeholder="Place of disappearance"
-                  {...form.getInputProps('location')}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <Select
-                  label="Gender"
-                  placeholder="Select gender"
-                  clearable
-                  data={[
-                    { value: 'male', label: 'Male' },
-                    { value: 'female', label: 'Female' },
-                    { value: 'other', label: 'Other' },
-                  ]}
-                  {...form.getInputProps('gender')}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <Select
-                  label="Status"
-                  placeholder="Select status"
-                  clearable
-                  data={[
-                    { value: 'under_search', label: 'Under Search' },
-                    { value: 'found', label: 'Found' },
-                  ]}
-                  {...form.getInputProps('status')}
-                />
-              </Grid.Col>
-              <Grid.Col span={12}>
-                <Group justify="flex-end" mt="md">
-                  <Button type="submit" loading={loading}>
-                    Search
-                  </Button>
-                </Group>
-              </Grid.Col>
-            </Grid>
-          </form>
-        </Card>
+      <Card shadow="md" radius="md" p="xl" withBorder mb="xl">
+        <form onSubmit={form.onSubmit(handleSearch)}>
+          <TextInput
+            label="Name"
+            placeholder="Enter full or partial name"
+            {...form.getInputProps('name')}
+          />
+          <Group justify="flex-end" mt="md">
+            <Button type="submit" loading={loading}>
+              Search
+            </Button>
+          </Group>
+        </form>
+      </Card>
 
-        {loading ? (
-          <Center my="xl">
-            <Loader size="lg" />
-          </Center>
-        ) : searchResults !== null && (
-          <>
-            <Title order={2} mb="md">Search Results ({searchResults.length})</Title>
-            {searchResults.length > 0 ? (
-              <Stack gap="md">
-                {searchResults.map((prisoner) => (
-                  <Card key={prisoner.id} shadow="sm" padding="lg" radius="md" withBorder>
-                    <Group justify="space-between" mb="xs">
-                      <Title order={3}>{prisoner.name}</Title>
-                      <Badge color={prisoner.status === 'under_search' ? 'red' : 'green'}>
-                        {prisoner.status === 'under_search' ? 'Under Search' : 'Found'}
-                      </Badge>
-                    </Group>
-                    
-                    <Grid>
-                      <Grid.Col span={{ base: 12, sm: 6 }}>
-                        {prisoner.age && <Text><strong>Age:</strong> {prisoner.age}</Text>}
-                        {prisoner.gender && <Text><strong>Gender:</strong> {prisoner.gender === 'male' ? 'Male' : prisoner.gender === 'female' ? 'Female' : 'Other'}</Text>}
-                        {prisoner.locationOfDisappearance && <Text><strong>Location of Disappearance:</strong> {prisoner.locationOfDisappearance}</Text>}
-                        {prisoner.dateOfDisappearance && <Text><strong>Date of Disappearance:</strong> {prisoner.dateOfDisappearance}</Text>}
-                      </Grid.Col>
-                      <Grid.Col span={{ base: 12, sm: 6 }}>
-                        {prisoner.reasonForCapture && <Text><strong>Reason for Capture:</strong> {prisoner.reasonForCapture}</Text>}
-                        {prisoner.releasedDate && <Text><strong>Released Date:</strong> {prisoner.releasedDate}</Text>}
-                        {prisoner.releasedLocation && <Text><strong>Released Location:</strong> {prisoner.releasedLocation}</Text>}
-                      </Grid.Col>
-                    </Grid>
-                    
-                    <Group mt="md">
-                      <Checkbox
-                        label="Notify me about updates"
-                        checked={!!subscribed[prisoner.id]}
-                        onChange={() => handleSubscribe(prisoner.id)}
-                      />
-                    </Group>
-                  </Card>
-                ))}
-              </Stack>
-            ) : (
-              <Text ta="center" fz="lg" c="dimmed">No results found. Try different search criteria.</Text>
-            )}
-          </>
-        )}
-      </Container>
-    </AppLayout>
+      {loading ? (
+        <Center my="xl">
+          <Loader size="lg" />
+        </Center>
+      ) : searchResults !== null && (
+        <>
+          <Title order={2} mb="md">Search Results ({searchResults.length})</Title>
+          {searchResults.length > 0 ? (
+            <Stack gap="md">
+              {searchResults.map((prisoner) => (
+                <Card key={prisoner.id} shadow="sm" padding="lg" radius="md" withBorder>
+                  <Group justify="space-between" mb="xs">
+                    <Title order={3}>{prisoner.name}</Title>
+                    <Badge color={prisoner.status === 'under_search' ? 'red' : 'green'}>
+                      {prisoner.status === 'under_search' ? 'Under Search' : 'Found'}
+                    </Badge>
+                  </Group>
+                  
+                  <Grid>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      {prisoner.age && <Text><strong>Age:</strong> {prisoner.age}</Text>}
+                      {prisoner.gender && <Text><strong>Gender:</strong> {prisoner.gender === 'male' ? 'Male' : prisoner.gender === 'female' ? 'Female' : 'Other'}</Text>}
+                      {prisoner.locationOfDisappearance && <Text><strong>Location of Disappearance:</strong> {prisoner.locationOfDisappearance}</Text>}
+                      {prisoner.dateOfDisappearance && <Text><strong>Date of Disappearance:</strong> {prisoner.dateOfDisappearance}</Text>}
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      {prisoner.reasonForCapture && <Text><strong>Reason for Capture:</strong> {prisoner.reasonForCapture}</Text>}
+                      {prisoner.releasedDate && <Text><strong>Released Date:</strong> {prisoner.status === 'found' ? new Date(prisoner.releasedDate).toLocaleDateString() : 'Not released'}</Text>}
+                      {prisoner.releasedLocation && <Text><strong>Released Location:</strong> {prisoner.status === 'found' ? prisoner.releasedLocation : 'Not released'}</Text>}
+                    </Grid.Col>
+                  </Grid>
+                  
+                  <Group mt="md">
+                    <Checkbox
+                      label="Notify me about updates"
+                      checked={!!subscribed[prisoner.id]}
+                      onChange={() => handleSubscribe(prisoner.id)}
+                    />
+                  </Group>
+                </Card>
+              ))}
+            </Stack>
+          ) : (
+            <Text ta="center" fz="lg" c="dimmed">No results found. Try a different name.</Text>
+          )}
+        </>
+      )}
+    </Container>
   );
 } 

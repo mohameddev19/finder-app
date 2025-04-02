@@ -1,7 +1,6 @@
 'use client';
 
 import { Container, Title, Text, Button, Group, SimpleGrid, Card, rem, Stack } from '@mantine/core';
-import { AppLayout } from '@/components/AppShell';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
@@ -31,43 +30,41 @@ export default function Home() {
   ];
 
   return (
-    <AppLayout>
-      <Container size="lg">
-        <Stack gap="xl" py={rem(50)}>
-          <div style={{ textAlign: 'center', marginBottom: rem(40) }}>
-            <Title order={1} size="h1" style={{ marginBottom: rem(16) }}>
-              Help Find Missing Persons
-            </Title>
-            <Text size="lg" c="dimmed" maw={600} mx="auto">
-              A community platform to help reunite families with their missing loved ones who have been abducted and released.
-            </Text>
-            <Group justify="center" mt="xl">
-              <Button size="lg" onClick={() => router.push('/search')}>
-                Search Missing Persons
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => router.push('/add-missing')}>
-                Report Missing Person
-              </Button>
-            </Group>
-          </div>
+    <Container size="lg">
+      <Stack gap="xl" py={rem(50)}>
+        <div style={{ textAlign: 'center', marginBottom: rem(40) }}>
+          <Title order={1} size="h1" style={{ marginBottom: rem(16) }}>
+            Help Find Missing Persons
+          </Title>
+          <Text size="lg" c="dimmed" maw={600} mx="auto">
+            A community platform to help reunite families with their missing loved ones who have been abducted and released.
+          </Text>
+          <Group justify="center" mt="xl">
+            <Button size="lg" onClick={() => router.push('/search')}>
+              Search Missing Persons
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => router.push('/add-missing')}>
+              Report Missing Person
+            </Button>
+          </Group>
+        </div>
 
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="xl">
-            {features.map((feature, index) => (
-              <Card key={index} shadow="md" padding="lg" radius="md" withBorder>
-                <Title order={3} fw={700} mb="xs">
-                  {feature.title}
-                </Title>
-                <Text size="sm" c="dimmed" mb="md">
-                  {feature.description}
-                </Text>
-                <Button variant="light" onClick={feature.action}>
-                  Learn More
-                </Button>
-              </Card>
-            ))}
-          </SimpleGrid>
-        </Stack>
-      </Container>
-    </AppLayout>
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="xl">
+          {features.map((feature, index) => (
+            <Card key={index} shadow="md" padding="lg" radius="md" withBorder>
+              <Title order={3} fw={700} mb="xs">
+                {feature.title}
+              </Title>
+              <Text size="sm" c="dimmed" mb="md">
+                {feature.description}
+              </Text>
+              <Button variant="light" onClick={feature.action}>
+                Learn More
+              </Button>
+            </Card>
+          ))}
+        </SimpleGrid>
+      </Stack>
+    </Container>
   );
 }

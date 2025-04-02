@@ -1,28 +1,27 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db/connect';
+import { db } from '@/db';
 import { users } from '@/db/schema';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { generateToken } from '@/lib/auth';
-import { cookies } from 'next/headers';
 
-// Define validation schema
+// Validation schema
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().email('Invalid email'),
   password: z.string().min(1, 'Password is required')
 });
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
+
     // Validate request body
     const validation = loginSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json({ error: 'Invalid input', details: validation.error.errors }, { status: 400 });
     }
-    
+
     const { email, password } = validation.data;
 
     // Find user by email
@@ -31,42 +30,58 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
-      // Use generic error message for security (don't reveal if email exists)
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // Compare passwords
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
+    
+    // Check if the user is verified
+    if (!user.isVerified) {
+      if (user.userType === 'authority') {
+        return NextResponse.json({ error: 'Authority account not verified', code: 'AUTHORITY_NOT_VERIFIED' }, { status: 403 });
+      }
+      // Handle other unverified cases if necessary, though family should be auto-verified
+      return NextResponse.json({ error: 'Account not verified' }, { status: 403 });
     }
 
-    // Generate JWT token
+    // Generate a new token if one doesn't exist (e.g., first login after verification)
     const token = generateToken({
       userId: user.id,
       email: user.email,
       name: user.name,
       userType: user.userType
     });
+    await db.update(users)
+      .set({ token: token })
+      .where(eq(users.id, user.id));
 
-    // Return user data (excluding password)
-    const { password: _, ...userWithoutPassword } = user;
+    // Prepare user data to return (excluding password and potentially token)
+    const userResponseData = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      userType: user.userType,
+      isVerified: user.isVerified,
+      organization: user.organization,
+      position: user.position
+    };
     
-    // Create response with the token in a cookie
-    const response = NextResponse.json({ 
+    const response = NextResponse.json({
       message: 'Login successful',
-      user: userWithoutPassword,
-      token // Also return token in response for clients that need it directly
+      user: userResponseData,
+      token: token
     });
-
-    // Set HTTP-only cookie
-    response.cookies.set({
-      name: 'finder_token',
-      value: token,
+    
+    // Set the token in cookies
+    response.cookies.set('finder_token', token, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/',
-      secure: process.env.NODE_ENV === 'production', // Only use secure in production
-      maxAge: 60 * 60 * 24 * 7, // 1 week in seconds
     });
 
     return response;

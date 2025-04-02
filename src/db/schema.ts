@@ -14,6 +14,11 @@ export const users = pgTable('users', {
   name: text('name').notNull(),
   phone: text('phone'),
   userType: userTypeEnum('user_type').notNull(),
+  isVerified: boolean('is_verified').default(false).notNull(),
+  organization: text('organization'),
+  position: text('position'),
+  details: text('details'),
+  token: text('token'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Container, Title, Grid, Card, Text, RingProgress, Group, Stack, SimpleGrid, Center, Loader } from '@mantine/core';
-import { AppLayout } from '@/components/AppShell';
 
 type StatsData = {
   totalMissing: number;
@@ -51,97 +50,91 @@ export default function Statistics() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <Container>
-          <Center h={400}>
-            <Loader size="lg" />
-          </Center>
-        </Container>
-      </AppLayout>
+      <Container>
+      <Center h={400}>
+        <Loader size="lg" />
+        </Center>
+      </Container>
     );
   }
 
   if (!stats) {
     return (
-      <AppLayout>
-        <Container>
-          <Title order={2} mb="xl">Statistics</Title>
-          <Text>No statistical data available.</Text>
-        </Container>
-      </AppLayout>
+      <Container>
+        <Title order={2} mb="xl">Statistics</Title>
+        <Text>No statistical data available.</Text>
+      </Container>
     );
   }
 
   return (
-    <AppLayout>
-      <Container size="lg">
-        <Title order={2} mb="xl">Missing Persons Statistics</Title>
+    <Container size="lg">
+      <Title order={2} mb="xl">Missing Persons Statistics</Title>
 
-        <SimpleGrid cols={{ base: 1, sm: 2 }} mb="xl">
-          <Card withBorder shadow="sm" p="lg">
-            <Group justify="space-between">
-              <div>
-                <Text fw={500} size="lg">Total Missing</Text>
-                <Text size="xs" c="dimmed">Currently being searched for</Text>
-              </div>
-              <Text size="xl" fw={700} c="red">{stats.totalMissing}</Text>
-            </Group>
-          </Card>
+      <SimpleGrid cols={{ base: 1, sm: 2 }} mb="xl">
+        <Card withBorder shadow="sm" p="lg">
+          <Group justify="space-between">
+            <div>
+              <Text fw={500} size="lg">Total Missing</Text>
+              <Text size="xs" c="dimmed">Currently being searched for</Text>
+            </div>
+            <Text size="xl" fw={700} c="red">{stats.totalMissing}</Text>
+          </Group>
+        </Card>
 
-          <Card withBorder shadow="sm" p="lg">
-            <Group justify="space-between">
-              <div>
-                <Text fw={500} size="lg">Total Found</Text>
-                <Text size="xs" c="dimmed">Successfully located</Text>
-              </div>
-              <Text size="xl" fw={700} c="teal">{stats.totalFound}</Text>
-            </Group>
-          </Card>
-        </SimpleGrid>
+        <Card withBorder shadow="sm" p="lg">
+          <Group justify="space-between">
+            <div>
+              <Text fw={500} size="lg">Total Found</Text>
+              <Text size="xs" c="dimmed">Successfully located</Text>
+            </div>
+            <Text size="xl" fw={700} c="teal">{stats.totalFound}</Text>
+          </Group>
+        </Card>
+      </SimpleGrid>
 
-        <Grid>
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <Card withBorder shadow="sm" p="lg" h="100%">
-              <Title order={3} mb="md">Missing Persons by Region</Title>
-              <Stack gap="xs">
-                {stats.byRegion.map((region) => (
-                  <Group key={region.name} justify="space-between" mb="xs">
-                    <Text size="sm">{region.name}</Text>
-                    <Group gap="xs">
-                      <Text size="sm" fw={500}>{region.count}</Text>
-                      <Text size="xs" c="dimmed">({region.percentage}%)</Text>
-                    </Group>
+      <Grid>
+        <Grid.Col span={{ base: 12, md: 6 }}>
+          <Card withBorder shadow="sm" p="lg" h="100%">
+            <Title order={3} mb="md">Missing Persons by Region</Title>
+            <Stack gap="xs">
+              {stats.byRegion.map((region) => (
+                <Group key={region.name} justify="space-between" mb="xs">
+                  <Text size="sm">{region.name}</Text>
+                  <Group gap="xs">
+                    <Text size="sm" fw={500}>{region.count}</Text>
+                    <Text size="xs" c="dimmed">({region.percentage}%)</Text>
                   </Group>
-                ))}
-              </Stack>
-            </Card>
-          </Grid.Col>
+                </Group>
+              ))}
+            </Stack>
+          </Card>
+        </Grid.Col>
 
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <Card withBorder shadow="sm" p="lg" h="100%">
-              <Title order={3} mb="lg">Recovery Rate</Title>
-              <Center>
-                <RingProgress
-                  size={180}
-                  thickness={20}
-                  roundCaps
-                  sections={[
-                    { value: (stats.totalFound / (stats.totalMissing + stats.totalFound)) * 100, color: 'teal' },
-                  ]}
-                  label={
-                    <div style={{ textAlign: 'center' }}>
-                      <Text fw={700} size="xl">
-                        {Math.round((stats.totalFound / (stats.totalMissing + stats.totalFound)) * 100)}%
-                      </Text>
-                      <Text size="xs" c="dimmed">Recovery rate</Text>
-                    </div>
-                  }
-                />
-              </Center>
-            </Card>
-          </Grid.Col>
-        </Grid>
-      </Container>
-    </AppLayout>
+        <Grid.Col span={{ base: 12, md: 6 }}>
+          <Card withBorder shadow="sm" p="lg" h="100%">
+            <Title order={3} mb="lg">Recovery Rate</Title>
+            <Center>
+              <RingProgress
+                size={180}
+                thickness={20}
+                roundCaps
+                sections={[
+                  { value: (stats.totalFound / (stats.totalMissing + stats.totalFound)) * 100, color: 'teal' },
+                ]}
+                label={
+                  <div style={{ textAlign: 'center' }}>
+                    <Text fw={700} size="xl">
+                      {Math.round((stats.totalFound / (stats.totalMissing + stats.totalFound)) * 100)}%
+                    </Text>
+                    <Text size="xs" c="dimmed">Recovery rate</Text>
+                  </div>
+                }
+              />
+            </Center>
+          </Card>
+        </Grid.Col>
+      </Grid>
+    </Container>
   );
 } 

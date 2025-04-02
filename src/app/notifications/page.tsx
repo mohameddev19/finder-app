@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Container, Title, Stack, Card, Text, Badge, Button, Group, Loader, Center } from '@mantine/core';
-import { AppLayout } from '@/components/AppShell';
 
 type Notification = {
   id: number;
@@ -71,58 +70,56 @@ export default function Notifications() {
   };
 
   return (
-    <AppLayout>
-      <Container size="md">
-        <Title order={2} mb="xl">Notifications</Title>
+    <Container size="md">
+      <Title order={2} mb="xl">Notifications</Title>
 
-        {loading ? (
-          <Center h={200}>
-            <Loader />
-          </Center>
-        ) : notifications.length === 0 ? (
-          <Card withBorder p="xl" ta="center">
-            <Text c="dimmed">You have no notifications.</Text>
-          </Card>
-        ) : (
-          <Stack gap="md">
-            {notifications.map((notification) => (
-              <Card key={notification.id} withBorder shadow="sm" p="md">
-                <Group justify="space-between" mb="xs">
-                  <Group>
-                    <Text fw={500}>{notification.prisonerName}</Text>
-                    {!notification.isRead && (
-                      <Badge color="red">New</Badge>
-                    )}
-                  </Group>
-                  <Text size="sm" c="dimmed">{formatDate(notification.createdAt)}</Text>
+      {loading ? (
+        <Center h={200}>
+          <Loader />
+        </Center>
+      ) : notifications.length === 0 ? (
+        <Card withBorder p="xl" ta="center">
+          <Text c="dimmed">You have no notifications.</Text>
+        </Card>
+      ) : (
+        <Stack gap="md">
+          {notifications.map((notification) => (
+            <Card key={notification.id} withBorder shadow="sm" p="md">
+              <Group justify="space-between" mb="xs">
+                <Group>
+                  <Text fw={500}>{notification.prisonerName}</Text>
+                  {!notification.isRead && (
+                    <Badge color="red">New</Badge>
+                  )}
                 </Group>
+                <Text size="sm" c="dimmed">{formatDate(notification.createdAt)}</Text>
+              </Group>
+              
+              <Text mb="md">{notification.message}</Text>
+              
+              <Group justify="space-between">
+                <Button 
+                  variant="outline"
+                  size="xs"
+                  onClick={() => markAsRead(notification.id)}
+                  disabled={notification.isRead}
+                >
+                  {notification.isRead ? 'Read' : 'Mark as read'}
+                </Button>
                 
-                <Text mb="md">{notification.message}</Text>
-                
-                <Group justify="space-between">
-                  <Button 
-                    variant="outline"
-                    size="xs"
-                    onClick={() => markAsRead(notification.id)}
-                    disabled={notification.isRead}
-                  >
-                    {notification.isRead ? 'Read' : 'Mark as read'}
-                  </Button>
-                  
-                  <Button 
-                    variant="light"
-                    size="xs"
-                    component="a"
-                    href={`/search/${notification.prisonerId}`}
-                  >
-                    View Details
-                  </Button>
-                </Group>
-              </Card>
-            ))}
-          </Stack>
-        )}
-      </Container>
-    </AppLayout>
+                <Button 
+                  variant="light"
+                  size="xs"
+                  component="a"
+                  href={`/search/${notification.prisonerId}`}
+                >
+                  View Details
+                </Button>
+              </Group>
+            </Card>
+          ))}
+        </Stack>
+      )}
+    </Container>
   );
 } 

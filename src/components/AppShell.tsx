@@ -4,20 +4,21 @@ import { useState } from 'react';
 import { AppShell, Burger, Group, NavLink, Text, Avatar, Button } from '@mantine/core';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
 
 type AppShellProps = {
   children: React.ReactNode;
-  user?: {
-    name: string;
-    email: string;
-    userType: 'family' | 'authority';
-  } | null;
 };
 
-export function AppLayout({ children, user }: AppShellProps) {
+const AUTH_PAGES = ['/login', '/register', '/verification-pending', '/authority-verification', '/authority-register'];
+
+export function AppLayout({ children }: AppShellProps) {
   const [opened, setOpened] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { user, logout } = useAuth();
+
+  const isAuthPage = AUTH_PAGES.includes(pathname);
 
   const familyLinks = [
     { label: 'Home', href: '/' },
@@ -31,7 +32,7 @@ export function AppLayout({ children, user }: AppShellProps) {
     { label: 'Home', href: '/' },
     { label: 'Manage Prisoners', href: '/manage-prisoners' },
     { label: 'Add Released Prisoner', href: '/add-released' },
-    { label: 'Statistics', href: '/statistics' },
+    { label: 'Verification Requests', href: '/authority-verification' },
   ];
 
   const links = user?.userType === 'authority' ? authorityLinks : familyLinks;
@@ -40,11 +41,11 @@ export function AppLayout({ children, user }: AppShellProps) {
     <AppShell
       header={{ height: 60 }}
       navbar={{
-        width: 300,
+        width: isAuthPage ? 0 : 300,
         breakpoint: 'sm',
         collapsed: { mobile: !opened },
       }}
-      padding="md"
+      padding={{ base: 0, sm: 'sm', md: 'md' }}
     >
       <AppShell.Header>
         <Group h="100%" px="md">
@@ -55,30 +56,34 @@ export function AppLayout({ children, user }: AppShellProps) {
               <Group>
                 <Text>{user.name}</Text>
                 <Avatar radius="xl" />
-                <Button variant="subtle" onClick={() => router.push('/logout')}>Logout</Button>
+                <Button variant="subtle" onClick={logout}>Logout</Button>
               </Group>
             ) : (
-              <Group>
-                <Button variant="outline" onClick={() => router.push('/login')}>Login</Button>
-                <Button onClick={() => router.push('/register')}>Register</Button>
-              </Group>
+              !isAuthPage && (
+                <Group>
+                  <Button variant="outline" onClick={() => router.push('/login')}>Login</Button>
+                  <Button onClick={() => router.push('/register')}>Register</Button>
+                </Group>
+              )
             )}
           </Group>
         </Group>
       </AppShell.Header>
       
-      <AppShell.Navbar p="md">
-        {links.map((link) => (
-          <NavLink
-            key={link.href}
-            component={Link}
-            href={link.href}
-            label={link.label}
-            active={pathname === link.href}
-            my={5}
-          />
-        ))}
-      </AppShell.Navbar>
+      {!isAuthPage && (
+        <AppShell.Navbar p="md">
+          {links.map((link) => (
+            <NavLink
+              key={link.href}
+              component={Link}
+              href={link.href}
+              label={link.label}
+              active={pathname === link.href}
+              my={5}
+            />
+          ))}
+        </AppShell.Navbar>
+      )}
       
       <AppShell.Main>{children}</AppShell.Main>
     </AppShell>
