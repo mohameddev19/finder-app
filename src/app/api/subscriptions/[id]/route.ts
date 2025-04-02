@@ -32,16 +32,18 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     }
 
     // 1. Authenticate
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const tokenCookie = cookieStore.get('finder_token');
     const token = tokenCookie?.value;
     if (!token) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-    const payload = verifyToken(token) as JWTPayload | null;
+    
+    const payload = await verifyToken(token);
     if (!payload || typeof payload !== 'object' || typeof payload.userId !== 'number') {
       return NextResponse.json({ error: 'Invalid or expired token payload' }, { status: 401 });
     }
+    
     const userId = payload.userId;
 
     // 2. Authorize (Check Ownership)
@@ -66,7 +68,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 }
 
 // DELETE - Remove a subscription
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: Request, 
+  { params }: { params: { id: string } }
+) {
   try {
     const subscriptionId = parseInt(params.id);
     if (isNaN(subscriptionId)) {
@@ -74,16 +79,18 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     }
 
     // 1. Authenticate (same as PATCH)
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const tokenCookie = cookieStore.get('finder_token');
     const token = tokenCookie?.value;
     if (!token) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-    const payload = verifyToken(token) as JWTPayload | null;
+    
+    const payload = await verifyToken(token);
     if (!payload || typeof payload !== 'object' || typeof payload.userId !== 'number') {
       return NextResponse.json({ error: 'Invalid or expired token payload' }, { status: 401 });
     }
+    
     const userId = payload.userId;
 
     // 2. Authorize (Check Ownership)
