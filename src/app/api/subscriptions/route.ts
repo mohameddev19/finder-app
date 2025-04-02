@@ -9,7 +9,7 @@ import type { JWTPayload } from '@/lib/auth';
 export async function GET(request: Request) {
   try {
     // 1. Authentication
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const tokenCookie = cookieStore.get('finder_token');
     const token = tokenCookie?.value;
 
