@@ -1,16 +1,63 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-];
-
-export default eslintConfig;
+module.exports = {
+  extends: ['mantine', 'plugin:@next/next/recommended', 'plugin:jest/recommended'],
+  plugins: ['testing-library', 'jest'],
+  overrides: [
+    {
+      files: ['**/?(*.)+(spec|test).[jt]s?(x)'],
+      extends: ['plugin:testing-library/react'],
+    },
+  ],
+  parserOptions: {
+    project: './tsconfig.json',
+  },
+  rules: {
+    'react/react-in-jsx-scope': 'off',
+    'import/extensions': 'off',
+    'eqeqeq': 'off',
+    '@typescript-eslint/semi': 'off',
+    'comma-dangle': 'off',
+    'padded-blocks': 'off',
+    'jsx-quotes': 'off',
+    'import/order': 'off',
+    '@typescript-eslint/no-unused-vars': 'off',
+    'prefer-const': 'off',
+    'no-unneeded-ternary': 'off',
+    'eol-last': 'off',
+    'max-len': ['warn', { code: 200 }],
+    'react/jsx-closing-tag-location': 'off',
+    'no-tabs': 'off',
+    'react/jsx-indent-props': 'off',
+    '@typescript-eslint/no-shadow': 'off',
+    'import/newline-after-import': 'off',
+    'react/jsx-curly-brace-presence': 'off',
+    '@typescript-eslint/quotes': ['warn', 'single'],
+    'no-trailing-spaces': 'off',
+    '@typescript-eslint/keyword-spacing': ['warn', { 'before': true, 'after': true }],
+    '@typescript-eslint/space-before-blocks': ['warn', 'always'],
+    'import/no-duplicates': 'off',
+    'no-multiple-empty-lines': ['warn', { 'max': 1, 'maxBOF': 0 }],
+    'lines-around-directive': ['warn', 'always'],
+    '@typescript-eslint/method-signature-style': 'off',
+    '@typescript-eslint/return-await': 'off',
+    'arrow-body-style': 'off',
+    'prefer-arrow-callback': 'off',
+    '@typescript-eslint/brace-style': ['off', '1tbs'],
+    'no-mixed-spaces-and-tabs': 'warn',
+    'react/no-unescaped-entities': 'warn',
+    '@typescript-eslint/space-infix-ops': 'off',
+    'react/jsx-boolean-value': 'off',
+    '@typescript-eslint/comma-spacing': ['error', { before: false, after: true }],
+    'no-multi-spaces': ['error'],
+    '@typescript-eslint/object-curly-spacing': ['error', 'always'],
+    'prefer-destructuring': 'off',
+    'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
+    'jsx-a11y/html-has-lang': 'off',
+    'react/button-has-type': 'off',
+    '*': 'off',
+    '**': 'off',
+    'object-shorthand': 'off',
+    '@typescript-eslint/comma-spacing': ['error', { before: false, after: true }],
+    'no-multi-spaces': ['error'],
+    '@typescript-eslint/space-infix-ops': 'off'
+  },
+};
